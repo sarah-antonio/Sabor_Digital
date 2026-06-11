@@ -26,35 +26,68 @@ class ProdutoService {
         };
     }
 
-    async cadastrarProduto(dados) {
-        const { nome, descricao, preco, categoria, disponivel, imagem } = dados;
+   // Método assíncrono responsável pelo cadastro de um produto
+async cadastrarProduto(dados) {
 
-        if (!nome || !descricao || preco === undefined || preco === "") {
-            throw { status: 400, mensagem: "Nome, descrição e preço são obrigatórios" };
-        }
+    // Extrai os dados recebidos do objeto enviado pelo Controller
+    const { nome, descricao, preco, categoria, disponivel, imagem } = dados;
 
-        const precoNumerico = parseFloat(preco);
-        if (isNaN(precoNumerico) || precoNumerico <= 0) {
-            throw { status: 400, mensagem: "Preço deve ser um número positivo" };
-        }
+    // Valida se os campos obrigatórios foram preenchidos
+    if (!nome || !descricao || preco === undefined || preco === "") {
 
-        const novoProduto = {
-            nome: nome.trim(),
-            descricao: descricao.trim(),
-            preco: precoNumerico,
-            categoria: categoria || null,
-            disponivel: disponivel ?? true,
-            imagem
-        };
-
-        const id = await ProdutoRepository.create(novoProduto);
-
-        return {
-            sucesso: true,
-            mensagem: "Produto cadastrado com sucesso",
-            id
+        // Caso algum campo obrigatório esteja ausente,
+        // lança um erro com status HTTP 400 (Bad Request)
+        throw {
+            status: 400,
+            mensagem: "Nome, descrição e preço são obrigatórios"
         };
     }
+
+    // Converte o valor do preço para número decimal
+    const precoNumerico = parseFloat(preco);
+
+    // Verifica se o preço é um número válido e maior que zero
+    if (isNaN(precoNumerico) || precoNumerico <= 0) {
+
+        // Caso o preço seja inválido, gera uma exceção
+        throw {
+            status: 400,
+            mensagem: "Preço deve ser um número positivo"
+        };
+    }
+
+    // Cria o objeto que será enviado ao Repository
+    const novoProduto = {
+
+        // Remove espaços extras do início e fim do nome
+        nome: nome.trim(),
+
+        // Remove espaços extras da descrição
+        descricao: descricao.trim(),
+
+        // Armazena o preço convertido para número
+        preco: precoNumerico,
+
+        // Define a categoria ou salva null caso não exista
+        categoria: categoria || null,
+
+        // Define disponibilidade como true caso nenhum valor seja informado
+        disponivel: disponivel ?? true,
+
+        // Armazena o nome da imagem enviada
+        imagem
+    };
+
+    // Chama o Repository para inserir o produto no banco de dados
+    const id = await ProdutoRepository.create(novoProduto);
+
+    // Retorna uma resposta de sucesso para o Controller
+    return {
+        sucesso: true,
+        mensagem: "Produto cadastrado com sucesso",
+        id
+    };
+}
 
     async atualizarProduto(id, dados) {
         if (!id || isNaN(id)) {
